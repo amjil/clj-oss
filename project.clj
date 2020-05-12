@@ -7,7 +7,7 @@
                  [cheshire "5.10.0"]
                  [clj-http "3.10.1"]
                  [clojure.java-time "0.3.2"]
-                 [cprop "0.1.16"]
+                 [cprop "0.1.17"]
                  [expound "0.8.4"]
                  [funcool/cuerdas "2020.03.26-3"]
                  [funcool/promesa "5.1.0"]

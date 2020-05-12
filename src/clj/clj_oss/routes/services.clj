@@ -11,7 +11,9 @@
     [clj-oss.middleware.exception :as exception]
     [ring.util.http-response :refer :all]
     [clojure.java.io :as io]
-    [spec-tools.data-spec :as ds]))
+    [spec-tools.data-spec :as ds]
+    [clojure.tools.logging :as log]
+    [java-time :as time]))
 
 
 (defn service-routes []
@@ -50,4 +52,32 @@
               :config {:validator-url nil}})}]]
 
    ["/ping"
-    {:get (constantly (ok {:message "pong"}))}]])
+    {:get (constantly (ok {:message "pong"}))}]
+
+   ["/files"
+    {:swagger {:tags ["files"]}}
+
+    ["/upload"
+     {:post {:summary "upload a file"
+             :parameters {:multipart {:file multipart/temp-file-part}}
+             :responses {200 {:body {:name string?, :size int?}}}
+             :handler (fn [{{{:keys [file]} :multipart} :parameters}]
+                        (let [date (time/local-date-time)
+                              [year month day] (time/as date :year :month-of-year :day-of-month)
+                              path (str "public/" year "/" month "/" day)
+                              filename (str/replace (.toString (java.util.UUID/randomUUID)) #"-" "")]
+                          (io/make-parents path)
+                          (io/copy (:tempfile file) (io/file (str path "/" filename))))
+                        {:status 200
+                         :body {:name (:filename file)
+                                :size (:size file)}})}}]
+
+    ["/download"
+     {:get {:summary "downloads a file"
+            :swagger {:produces ["image/png"]}
+            :handler (fn [_]
+                       {:status 200
+                        :headers {"Content-Type" "image/png"}
+                        :body (-> "public/img/warning_clojure.png"
+                                  (io/resource)
+                                  (io/input-stream))})}}]]])
