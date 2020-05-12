@@ -11,9 +11,10 @@
     [clj-oss.middleware.exception :as exception]
     [ring.util.http-response :refer :all]
     [clojure.java.io :as io]
-    [spec-tools.data-spec :as ds]
     [clojure.tools.logging :as log]
-    [java-time :as time]))
+    [spec-tools.data-spec :as ds]
+
+    [clj-oss.services.service :as service]))
 
 
 (defn service-routes []
@@ -59,25 +60,21 @@
 
     ["/upload"
      {:post {:summary "upload a file"
-             :parameters {:multipart {:file multipart/temp-file-part}}
-             :responses {200 {:body {:name string?, :size int?}}}
-             :handler (fn [{{{:keys [file]} :multipart} :parameters}]
-                        (let [date (time/local-date-time)
-                              [year month day] (time/as date :year :month-of-year :day-of-month)
-                              path (str "public/" year "/" month "/" day)
-                              filename (str/replace (.toString (java.util.UUID/randomUUID)) #"-" "")]
-                          (io/make-parents path)
-                          (io/copy (:tempfile file) (io/file (str path "/" filename))))
-                        {:status 200
-                         :body {:name (:filename file)
-                                :size (:size file)}})}}]
+             :parameters {:multipart {:file multipart/temp-file-part}
+                          :query {:apikey string? :path string? :uuid string? :sign string?}}
+             :responses {200 {:body {:name string?, :size int?, :url string?}}}
+             :handler (fn [{{{:keys [file]} :multipart params :query} :parameters}]
+                        (let [filename (service/save-file file)]
+                          {:status 200
+                           :body {:name (:filename file)
+                                  :url filename
+                                  :size (:size file)}}))}}]
 
     ["/download"
      {:get {:summary "downloads a file"
-            :swagger {:produces ["image/png"]}
-            :handler (fn [_]
+            ; :swagger {:produces ["image/png"]}
+            :parameters {:query {:filename string?}}
+            :handler (fn [{{{:keys [filename]} :query} :parameters}]
                        {:status 200
-                        :headers {"Content-Type" "image/png"}
-                        :body (-> "public/img/warning_clojure.png"
-                                  (io/resource)
-                                  (io/input-stream))})}}]]])
+                        :headers {"Content-Type" "image/jpeg"}
+                        :body (io/input-stream filename)})}}]]])

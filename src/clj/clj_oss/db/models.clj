@@ -2,8 +2,8 @@
   (:require
     [toucan.models :refer [defmodel]]))
 
-(defmodel Sms :user_sms_log)
-  ; (types [this]
-  ;   {:status :keyword}))
+(defmodel OssDeveloper :oss_developer)
 
-(defmodel Block :user_black_list)
+(defmodel OssApplication :oss_application)
+
+(defmodel OssResource :oss_resource)
