@@ -15,4 +15,4 @@ create table oss_resource  (
 --;;
 create index oss_resource_user_index on oss_resource(user_id);
 --;;
-create index oss_resource_filename_index on oss_resource(file_name);
+create unique index oss_resource_filename_index on oss_resource(file_name);

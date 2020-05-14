@@ -16,19 +16,29 @@
 
 (defn save-file [file params]
   ;; check api
-  (let [data (db/select-one [models/OssApplication :appscret] :apikey (:apikey params))
-        secret (:secret)
-        sign (-> (str (:apikey params) (:path params) (:uuid params) secret)
+  (let [data (db/select-one [models/OssApplication :appscret :id :user_id] :apikey (:apikey params))
+        secret (:secret data)
+        sign (-> (str (:apikey params) (:uuid params) secret)
                  (hash/sha256)
                  (codecs/bytes->hex))]
 
     (if (not= sign (:sign params))
-      (throw (ex-info "check" {:type ::exception/check :msg (get-config :no-auth)}))))
+      (throw (ex-info "check" {:type ::exception/check :msg (get-config :no-auth)})))
 
     ;; Todo check space configured
 
-  (let [path (str "public/" (:apikey params) "/" (:path params))
-        filename (str path "/" (:filename file))]
-    (io/make-parents filename)
-    (io/copy (:tempfile file) (io/file filename))
-    filename))
+    (if (= "local" (env :storage))
+      (let [path (str "public/" (:id data))
+            file-suffix (last (str/split (:filename file) #"\."))
+            uuid (:uuid params)
+            filename (str path "/" (subs uuid 0 2) "/" (subs uuid 2 4) "/" uuid "." file-suffix)]
+        ;; move file to public folder
+        (io/make-parents filename)
+        (io/copy (:tempfile file) (io/file filename))
+        ;;insert db
+        (let [model {:app_id (:id data) :user_id (:user_id data)
+                     :file_size (:size file)
+                     :content_type (:content-type file)
+                     :original_name (:filename file)
+                     :file_name uuid}]
+          (db/insert! models/OssResource model))))))

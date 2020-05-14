@@ -61,10 +61,12 @@
     ["/upload"
      {:post {:summary "upload a file"
              :parameters {:multipart {:file multipart/temp-file-part}
-                          :query {:apikey string? :path string? :uuid string? :sign string?}}
+                          :query {:apikey string? :uuid string? :sign string?}}
              :responses {200 {:body {:name string?, :size int?, :url string?}}}
              :handler (fn [{{{:keys [file]} :multipart params :query} :parameters}]
-                        (let [filename (upload-service/save-file file)]
+                        ; (let [filename (upload-service/save-file file)])
+                        (log/warn file)
+                        (let [filename "aaa"] ;(upload-service/save-file file)]
                           {:status 200
                            :body {:name (:filename file)
                                   :url filename

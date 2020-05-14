@@ -7,6 +7,7 @@
  ;; when :nrepl-port is set the application starts the nREPL server on load
  :database-url "postgresql://localhost/clj_oss?user=amjil&password="
 
+ :storage "local" ;; weed
  :error-msgs {:no-auth "no auth!"}
 
  :third-party {}}
