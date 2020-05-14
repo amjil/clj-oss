@@ -31,6 +31,7 @@
       (let [path (str "public/" (:id data))
             file-suffix (last (str/split (:filename file) #"\."))
             uuid (:uuid params)
+            ;; new filename public/1/A0/43/A043xxxxxxxxx.jpg
             filename (str path "/" (subs uuid 0 2) "/" (subs uuid 2 4) "/" uuid "." file-suffix)]
         ;; move file to public folder
         (io/make-parents filename)

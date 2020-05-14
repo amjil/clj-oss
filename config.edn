@@ -8,6 +8,7 @@
  :database-url "postgresql://localhost/clj_oss?user=amjil&password="
 
  :storage "local" ;; weed
+ :global-secret "realyrealy,topsecret"
  :error-msgs {:no-auth "no auth!"}
 
  :third-party {}}
