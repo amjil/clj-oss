@@ -14,7 +14,7 @@
     [clojure.tools.logging :as log]
     [spec-tools.data-spec :as ds]
 
-    [clj-oss.services.service :as service]))
+    [clj-oss.services.upload :as upload-service]))
 
 
 (defn service-routes []
@@ -64,7 +64,7 @@
                           :query {:apikey string? :path string? :uuid string? :sign string?}}
              :responses {200 {:body {:name string?, :size int?, :url string?}}}
              :handler (fn [{{{:keys [file]} :multipart params :query} :parameters}]
-                        (let [filename (service/save-file file)]
+                        (let [filename (upload-service/save-file file)]
                           {:status 200
                            :body {:name (:filename file)
                                   :url filename
