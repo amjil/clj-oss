@@ -12,6 +12,12 @@
   (-> (.toString (java.util.UUID/randomUUID))
       (str/replace #"-" "")))
 
+(defn sign [apikey uuid]
+  (let [data (db/select-one [models/OssApplication :apisecret] :apikey apikey)]
+    (-> (str apikey uuid (:apisecret data))
+        (hash/sha256)
+        (codecs/bytes->hex))))
+
 (defn create-application [user-id spaces]
   (let [apikey (uuid)
         apisecret (-> (str apikey (:global-secret env))

@@ -16,8 +16,8 @@
 
 (defn save-file [file params]
   ;; check api
-  (let [data (db/select-one [models/OssApplication :appscret :id :user_id] :apikey (:apikey params))
-        secret (:secret data)
+  (let [data (db/select-one [models/OssApplication :apisecret :id :user_id] :apikey (:apikey params))
+        secret (:apisecret data)
         sign (-> (str (:apikey params) (:uuid params) secret)
                  (hash/sha256)
                  (codecs/bytes->hex))]
