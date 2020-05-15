@@ -14,6 +14,22 @@
 (defn- get-config [id]
   (-> env :error-msgs (get id)))
 
+(defn local-save-file [file appid userid uuid]
+  (let [path (str "public/" appid)
+        file-suffix (last (str/split (:filename file) #"\."))
+        ;; new filename public/1/A0/43/A043xxxxxxxxx.jpg
+        filename (str path "/" (subs uuid 0 2) "/" (subs uuid 2 4) "/" uuid "." file-suffix)]
+    ;; move file to public folder
+    (io/make-parents filename)
+    (io/copy (:tempfile file) (io/file filename))
+    ;;insert db
+    (let [model {:app_id appid :user_id userid
+                 :file_size (:size file)
+                 :content_type (:content-type file)
+                 :original_name (:filename file)
+                 :file_name uuid}]
+      (db/insert! models/OssResource model))))
+
 (defn save-file [file params]
   ;; check api
   (let [data (db/select-one [models/OssApplication :apisecret :id :user_id] :apikey (:apikey params))
@@ -28,18 +44,6 @@
     ;; Todo check space configured
 
     (if (= "local" (env :storage))
-      (let [path (str "public/" (:id data))
-            file-suffix (last (str/split (:filename file) #"\."))
-            uuid (:uuid params)
-            ;; new filename public/1/A0/43/A043xxxxxxxxx.jpg
-            filename (str path "/" (subs uuid 0 2) "/" (subs uuid 2 4) "/" uuid "." file-suffix)]
-        ;; move file to public folder
-        (io/make-parents filename)
-        (io/copy (:tempfile file) (io/file filename))
-        ;;insert db
-        (let [model {:app_id (:id data) :user_id (:user_id data)
-                     :file_size (:size file)
-                     :content_type (:content-type file)
-                     :original_name (:filename file)
-                     :file_name uuid}]
-          (db/insert! models/OssResource model))))))
+      (local-save-file file (:id data) (:user_id data) (:uuid params)))))
+      ; Todo seaweedfs
+      ; (weed-save-file ))))
